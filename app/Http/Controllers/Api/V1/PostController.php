@@ -59,7 +59,15 @@ class PostController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, Post $post)
+    public function edit(Post $post)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Post $post)
     {
         try {
             $request->validate([
@@ -68,18 +76,10 @@ class PostController extends Controller
             $post->text = $request->text;
             $post->save();
 
-            return response()->json(["message" => "Berhasil membuat postingan"]);
+            return response()->json(["message" => "Berhasil membuat postingan", 'post' => $post]);
         } catch (\Exception $e) {
             return response()->json(["message" => "Gagal membuat postingan"], 422);
         }
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Post $post)
-    {
-        //
     }
 
     /**
@@ -87,6 +87,6 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        $post->delete();
     }
 }

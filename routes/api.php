@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\V1\PostController;
+use App\Models\Like;
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Validation\Rules;
 use Illuminate\Http\Request;
@@ -64,7 +66,7 @@ Route::post('/register', function (Request $request) {
 })
     ->name('register');
 
-Route::post('/logout', function (Request $request) {
+Route::delete('/logout', function (Request $request) {
     $request->user()->tokens()->delete();
     return response()->json(['message' => 'Berhasil keluar akun']);
 })
@@ -73,4 +75,32 @@ Route::post('/logout', function (Request $request) {
 
 Route::group(['prefix' => 'v1', 'middleware' => 'auth:sanctum'], function () {
     Route::apiResource('posts', PostController::class);
+    Route::post('/posts/{post}/like', function (Post $post) {
+        try {
+            $like = Like::where('post_id', $post->id)->where('user_id', auth()->id())->first();
+
+            if (!$like) {
+                Like::create(['post_id' => $post->id, 'user_id' => auth()->id()]);
+                return response()->json(['message' => 'Berhasil menyukai postingan']);
+            } else {
+                return response()->json(["message" => "Postingan sudah disukai"], 500);
+            }
+        } catch (Exception $e) {
+            return response()->json(["message" => "Gagal menyukai postingan"], 422);
+        }
+    });
+    Route::post('/posts/{post}/unlike', function (Post $post) {
+        try {
+            $like = Like::where('post_id', $post->id)->where('user_id', auth()->id())->first();
+
+            if ($like) {
+                $like->delete();
+                return response()->json(['message' => 'Berhasil menghapus suka postingan']);
+            } else {
+                return response()->json(["message" => "Gagal menghapus suka postingan"], 500);
+            }
+        } catch (Exception $e) {
+            return response()->json(["message" => "Gagal menghapus suka postingan"], 422);
+        }
+    });
 });
